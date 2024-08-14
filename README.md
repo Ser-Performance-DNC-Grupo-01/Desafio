@@ -1,7 +1,3 @@
-Claro! Vou criar um arquivo README.md detalhado com base no código fornecido. Este README irá descrever a funcionalidade do código, as principais seções e como usar o script.
-
----
-
 # Análise e Modelagem de Dados de Vendas
 
 Este repositório contém um notebook Jupyter (.ipynb) que realiza uma análise detalhada dos dados de vendas, incluindo visualização, tratamento de dados e modelagem de clustering e regressão. O notebook faz uso de várias bibliotecas de Python para análise e visualização de dados.
