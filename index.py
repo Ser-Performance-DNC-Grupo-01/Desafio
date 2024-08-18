@@ -10,14 +10,21 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import scale, LabelEncoder
-from sklearn.cluster import KMeans, DBSCAN, MeanShift, AgglomerativeClustering
+from sklearn.preprocessing import scale, LabelEncoder, MinMaxScaler
+from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from kmodes.kmodes import KModes
 from kmodes.kprototypes import KPrototypes
 
-from sklearn.preprocessing import MinMaxScaler
+# Configuração do tema do Seaborn
+sns.set_theme(
+    context="talk",
+    style="darkgrid",
+    rc={
+        'figure.figsize': (8, 4),
+    },
+)
 
 # Função para carregar e tratar dados
 def carregar_dados(caminho, pasta_selecionada):
@@ -104,48 +111,68 @@ def pagina_vendas(dados):
     if 'vendas' in dados:
         vendas = tratar_dados_nulos(dados['vendas'])
         
+        # Garantir que 'Quantidade_de_Acessos' esteja presente
         if 'Quantidade_de_Acessos' not in vendas.columns:
             if 'Acessos' in vendas.columns:
                 vendas['Quantidade_de_Acessos'] = vendas['Acessos']
             else:
                 vendas['Quantidade_de_Acessos'] = 0
-        
+
+        # Criar uma coluna de devoluções
         vendas['Devolucoes'] = vendas.apply(lambda row: 'S' if pd.isna(row['N_Produtos']) or row['N_Produtos'] <= 0 else 'N', axis=1)
 
-        st.subheader("Ticket Médio")
-        tcktmedio = vendas['Vlr_Bruto'].sum() / vendas.shape[0]
-        st.write(f'Ticket médio: R${tcktmedio:.2f}')
+        # Seções de Análise
+        st.title("Análise de Vendas")
 
-        st.subheader("Faturamento Bruto")
-        FatBruto = vendas['Vlr_Bruto'].sum()
-        st.write(f'Faturamento bruto: R${FatBruto:.2f}')
+        # Tabela de Estatísticas Resumidas
+        st.header("Estatísticas Resumidas")
+        estatisticas = pd.DataFrame({
+            'Métrica': ['Ticket Médio', 'Faturamento Bruto', 'Faturamento Líquido', 'Total de Descontos', 'Total de Produtos Vendidos'],
+            'Valor': [
+                f"R${vendas['Vlr_Bruto'].sum() / vendas.shape[0]:.2f}",
+                f"R${vendas['Vlr_Bruto'].sum():.2f}",
+                f"R${vendas['Vlr_Liquido'].sum():.2f}",
+                f"R${vendas['Vlr_Desconto'].sum():.2f}",
+                f"{vendas['N_Produtos'].sum():.0f} unidades"
+            ]
+        })
+        st.dataframe(estatisticas, use_container_width=True)
 
-        st.subheader("Faturamento Líquido")
-        fatliq = vendas['Vlr_Liquido'].sum()
-        st.write(f'Faturamento líquido: R${fatliq:.2f}')
+        # Top 10 Funcionários que Mais Venderam
+        st.header("Top 10 Funcionários que Mais Venderam")
+        func_rank = vendas['Funcionario'].value_counts().head(10)
+        st.bar_chart(func_rank, use_container_width=True)
 
-        st.subheader("Total de Descontos")
-        total_descontos = vendas['Vlr_Desconto'].sum()
-        st.write(f'Total de descontos: R${total_descontos:.2f}')
+        # Funcionários com Menos Vendas
+        st.header("Funcionários com Menos Vendas")
+        func_rank_tail = vendas['Funcionario'].value_counts().tail(10)
+        st.bar_chart(func_rank_tail, use_container_width=True)
 
-        st.subheader("Total de Produtos Vendidos")
-        totprod = vendas['N_Produtos'].sum()
-        st.write(f'Total de produtos: {totprod:.0f} unidades')
-
-        st.subheader("Top 10 Funcionários que Mais Venderam")
-        func_rank = vendas['Funcionario'].value_counts()
-        top10func = func_rank.head(10)
-        st.bar_chart(top10func)
-
-        st.subheader("Funcionários com Menos Vendas")
-        tail10func = func_rank.tail(10)
-        st.bar_chart(tail10func)
-
-        st.subheader("Devoluções")
+        # Devoluções
+        st.header("Devoluções")
         devolucao = vendas['Devolucoes'].value_counts()
         st.write(devolucao)
+
+        # Visualizações detalhadas
+        st.header("Visualizações Detalhadas")
+
+        # Distribuição do Faturamento Líquido
+        st.subheader("Distribuição do Faturamento Líquido")
+        plt.figure()
+        sns.histplot(vendas['Vlr_Liquido'], kde=True)
+        plt.title('Distribuição do Faturamento Líquido')
+        plt.xlabel('Faturamento Líquido')
+        plt.ylabel('Frequência')
+        st.pyplot(plt)
+
+        # Correlação entre Variáveis
+        st.subheader("Correlação entre Variáveis")
+        plt.figure()
+        corr = vendas[['Vlr_Bruto', 'Vlr_Desconto', 'Vlr_Liquido', 'N_Produtos']].corr()
+        sns.heatmap(corr, annot=True, cmap='coolwarm', fmt='.2f')
+        plt.title('Matriz de Correlação')
+        st.pyplot(plt)
         
-        st.write("Colunas disponíveis:", vendas.columns)
     else:
         st.error("Dados de vendas não encontrados.")
 
@@ -236,7 +263,7 @@ def pagina_regressao(dados):
         
         # Visualização das previsões vs valores reais
         st.subheader("Visualização das Previsões vs Valores Reais")
-        plt.figure(figsize=(10, 6))
+        plt.figure()
         plt.scatter(y_test, y_pred_test, alpha=0.3)
         plt.xlabel('Valores Reais')
         plt.ylabel('Previsões')
@@ -250,6 +277,7 @@ def pagina_regressao(dados):
         st.pyplot(sns_plot.figure)
     else:
         st.error("Dados de vendas não encontrados.")
+
 # Função principal do Streamlit
 def main():
     st.title("Análise de Dados de Clientes")
