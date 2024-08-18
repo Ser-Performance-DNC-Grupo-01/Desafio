@@ -164,9 +164,13 @@ def pagina_clustering(dados):
             vendas['Devolucoes'] = vendas['Devolucoes'].map({'S': 1, 'N': 0})
         if 'Treinamento' in vendas.columns:
             vendas['Treinamento'] = vendas['Treinamento'].fillna('N').map({'S': 1, 'N': 0})
+    
 
         vendas = vendas.select_dtypes(include=[np.number])
         vendas = vendas.fillna(0)
+
+        numerical_columns = ['N_Produtos', 'Vlr_Bruto', 'Vlr_Liquido', 'Vlr_Desconto']
+        vendas[numerical_columns] = vendas[numerical_columns].apply(scale)
 
         st.subheader("Métricas de Clustering")
         cluster_metrics = calcular_metricas_cluster(vendas)
