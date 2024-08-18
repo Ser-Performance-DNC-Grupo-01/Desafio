@@ -4,6 +4,7 @@ import numpy as np
 import os
 import seaborn as sns
 import matplotlib.pyplot as plt
+import statsmodels.formula.api as smf
 import plotly.express as px
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
@@ -15,7 +16,8 @@ from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_har
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from kmodes.kmodes import KModes
 from kmodes.kprototypes import KPrototypes
-import statsmodels.formula.api as smf
+
+from sklearn.preprocessing import MinMaxScaler
 
 # Função para carregar e tratar dados
 def carregar_dados(caminho, pasta_selecionada):
@@ -188,7 +190,7 @@ def pagina_regressao(dados):
         # Definindo a fórmula para o modelo de regressão linear
         function = 'Vlr_Liquido ~ Vlr_Bruto + Vlr_Desconto + N_Boletos + N_Produtos - 1'
         
-        # Ajustando o modelo de regressão linear
+        # Ajustando o modelo de regressão linear com statsmodels
         model = smf.ols(formula=function, data=vendas).fit()
         
         # Exibindo o resumo do modelo
@@ -199,8 +201,12 @@ def pagina_regressao(dados):
         x = vendas[['Vlr_Bruto', 'Vlr_Desconto', 'N_Boletos', 'N_Produtos']]
         y = vendas['Vlr_Liquido']
         
+        # Aplicando Min-Max Scaling
+        scaler = MinMaxScaler()
+        x_scaled = scaler.fit_transform(x)
+        
         # Separando os dados de treino e teste
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+        x_train, x_test, y_train, y_test = train_test_split(x_scaled, y, test_size=0.2, random_state=42)
         
         # Criando o objeto de Regressão Linear
         lr = LinearRegression()
@@ -208,11 +214,13 @@ def pagina_regressao(dados):
         # Treinando o modelo
         lr.fit(x_train, y_train)
         
-        # Calculando o coeficiente de determinação (R²)
-        r_sq = lr.score(x, y)
+        # Calculando o coeficiente de determinação (R²) para os dados de treino e teste
+        r_sq_train = lr.score(x_train, y_train)
+        r_sq_test = lr.score(x_test, y_test)
         
         # Exibindo o coeficiente de determinação
-        st.write(f'Coeficiente de Determinação (R²): {r_sq:.2f}')
+        st.write(f'Coeficiente de Determinação (R²) - Treinamento: {r_sq_train:.2f}')
+        st.write(f'Coeficiente de Determinação (R²) - Teste: {r_sq_test:.2f}')
         
         # Previsões e métricas de erro para dados de treinamento
         y_pred_train = lr.predict(x_train)
@@ -221,18 +229,27 @@ def pagina_regressao(dados):
         st.write(f'RMSE (Treinamento): {np.sqrt(metrics.mean_squared_error(y_train, y_pred_train)):.2f}')
         
         # Previsões e métricas de erro para dados de teste
-        y_pred = lr.predict(x_test)
-        st.write(f'MAE (Teste): {metrics.mean_absolute_error(y_test, y_pred):.2f}')
-        st.write(f'MSE (Teste): {metrics.mean_squared_error(y_test, y_pred):.2f}')
-        st.write(f'RMSE (Teste): {np.sqrt(metrics.mean_squared_error(y_test, y_pred)):.2f}')
+        y_pred_test = lr.predict(x_test)
+        st.write(f'MAE (Teste): {metrics.mean_absolute_error(y_test, y_pred_test):.2f}')
+        st.write(f'MSE (Teste): {metrics.mean_squared_error(y_test, y_pred_test):.2f}')
+        st.write(f'RMSE (Teste): {np.sqrt(metrics.mean_squared_error(y_test, y_pred_test)):.2f}')
         
-        # Exibindo o pairplot das variáveis
+        # Visualização das previsões vs valores reais
+        st.subheader("Visualização das Previsões vs Valores Reais")
+        plt.figure(figsize=(10, 6))
+        plt.scatter(y_test, y_pred_test, alpha=0.3)
+        plt.xlabel('Valores Reais')
+        plt.ylabel('Previsões')
+        plt.title('Previsões vs Valores Reais')
+        plt.grid(True)
+        st.pyplot(plt)
+        
+        # Pairplot das variáveis
         st.subheader("Pairplot")
         sns_plot = sns.pairplot(vendas[['Vlr_Bruto', 'Vlr_Desconto', 'Vlr_Liquido', 'N_Produtos']])
         st.pyplot(sns_plot.figure)
     else:
         st.error("Dados de vendas não encontrados.")
-
 # Função principal do Streamlit
 def main():
     st.title("Análise de Dados de Clientes")
