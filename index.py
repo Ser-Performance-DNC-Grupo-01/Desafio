@@ -26,7 +26,9 @@ with open("D:\PROJETO_REAL_DNC_-SER-PERFORMACE\git\style.css") as g:
 
 logo_path = r'D:\PROJETO_REAL_DNC_-SER-PERFORMACE\git\logo.png'  
 logo = Image.open(logo_path)
+
 st.image(logo, width=300)
+
 st.markdown("""
    
     <style>
@@ -50,7 +52,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 
 # Função para carregar e tratar dados
@@ -63,7 +65,10 @@ def carregar_dados(caminho, pasta_selecionada):
                 dados['acessos'] = pd.read_csv(os.path.join(cliente, csv))
             elif 'vendas' in csv:
                 dados['vendas'] = pd.read_csv(os.path.join(cliente, csv))
+             
     return dados
+
+
 
 # Função para tratar dados nulos
 def tratar_dados_nulos(df):
@@ -121,11 +126,13 @@ def plotar_grafico_3d(vendas, kmeans_labels):
 def pagina_acessos(dados):
     if 'acessos' in dados:
         acessos = tratar_dados_nulos(dados['acessos'])
-        
+  
+  
+  
         # Criação das colunas
         col1, col2 = st.columns([1, 1])  # Define o espaço igual para as colunas
 
-        # Adicionar gráficos nas colunas
+        #  gráficos de acessos
         with col1:
            
             st.subheader("Acessos por Funcionário")
@@ -138,6 +145,7 @@ def pagina_acessos(dados):
                 textposition='none'  
             ))
             fig1.update_layout(
+                height=550,
                 paper_bgcolor='#0E1117',
                 plot_bgcolor='#0E1117',
                 title='',
@@ -158,6 +166,7 @@ def pagina_acessos(dados):
             unidade = acessos.groupby('Unidade')['Quantidade_de_Acessos'].sum().sort_values(ascending=False)
             fig2 = go.Figure(data=go.Bar(x=unidade.head(10).index, y=unidade.head(10), marker_color='orange'))
             fig2.update_layout(
+                height=550,
                 paper_bgcolor='#0E1117',
                 plot_bgcolor='#0E1117',
                 title='',
@@ -176,6 +185,7 @@ def pagina_acessos(dados):
         st.error("Dados de acessos não encontrados.")
 
 # Função para a página de análises de vendas
+
 def pagina_vendas(dados):
     if 'vendas' in dados:
         vendas = tratar_dados_nulos(dados['vendas'])
@@ -183,48 +193,189 @@ def pagina_vendas(dados):
         if 'Quantidade_de_Acessos' not in vendas.columns:
             if 'Acessos' in vendas.columns:
                 vendas['Quantidade_de_Acessos'] = vendas['Acessos']
-            else:
-                vendas['Quantidade_de_Acessos'] = 0
+        
+        col1, col2 = st.columns([1, 1])
         
         vendas['Devolucoes'] = vendas.apply(lambda row: 'S' if pd.isna(row['N_Produtos']) or row['N_Produtos'] <= 0 else 'N', axis=1)
-
-        st.subheader("Ticket Médio")
-        tcktmedio = vendas['Vlr_Bruto'].sum() / vendas.shape[0]
-        st.write(f'Ticket médio: R${tcktmedio:.2f}')
-
-        st.subheader("Faturamento Bruto")
-        FatBruto = vendas['Vlr_Bruto'].sum()
-        st.write(f'Faturamento bruto: R${FatBruto:.2f}')
-
-        st.subheader("Faturamento Líquido")
-        fatliq = vendas['Vlr_Liquido'].sum()
-        st.write(f'Faturamento líquido: R${fatliq:.2f}')
-
-        st.subheader("Total de Descontos")
-        total_descontos = vendas['Vlr_Desconto'].sum()
-        st.write(f'Total de descontos: R${total_descontos:.2f}')
-
-        st.subheader("Total de Produtos Vendidos")
-        totprod = vendas['N_Produtos'].sum()
-        st.write(f'Total de produtos: {totprod:.0f} unidades')
-
-        st.subheader("Top 10 Funcionários que Mais Venderam")
-        func_rank = vendas['Funcionario'].value_counts()
-        top10func = func_rank.head(10)
-        st.bar_chart(top10func)
-
-        st.subheader("Funcionários com Menos Vendas")
-        tail10func = func_rank.tail(10)
-        st.bar_chart(tail10func)
-
-        st.subheader("Devoluções")
-        devolucao = vendas['Devolucoes'].value_counts()
-        st.write(devolucao)
         
-        st.write("Colunas disponíveis:", vendas.columns)
-    else:
-        st.error("Dados de vendas não encontrados.")
+        # Calcular valores
+        tcktmedio = vendas['Vlr_Bruto'].sum() / vendas.shape[0]
+        FatBruto = vendas['Vlr_Bruto'].sum()
+        fatliq = vendas['Vlr_Liquido'].sum()
+        totprod = vendas['N_Produtos'].sum()
+        devolucao = vendas['Devolucoes'].value_counts()
+        total_descontos = vendas['Vlr_Desconto'].sum()
+        
+        
+        
+        
+        
+            
 
+           # st.subheader("Total de Produtos Vendidos")
+        totprod = vendas['N_Produtos'].sum()
+           # st.write(f'Total de produtos: {totprod:.0f} unidades')
+         
+         #barra_laranja   
+        with col1:
+                st.markdown(
+                f"""
+                <style>
+                    .card {{
+                    display: flex;
+                    justify-content: center;
+                    align-items: center; 
+                    gap: 180px;        
+                    width: 81vw;;
+                    background-color: #FFA500; 
+                    color: black;
+                    padding: 10px;
+                    border-radius: 10px;
+                    text-align: center;
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin-bottom: 50px;
+                }}
+                .PV .h1{{
+                    color: #942f2f;
+                }}
+                .TM{{
+                   
+                    display: flex;
+                    gap: 180px;  
+                }} 
+                              
+                </style>
+                <div class="card">
+                    <div class="PV"
+                    <h1 class="vendidos">Faturamento Bruto</h1><br>
+                    R${FatBruto:.2f}
+                    </div>                    
+                    <div class="TM"
+                    <h1>Ticket Médio</h1><br>
+                    R${tcktmedio:.2f}
+                    <div/>
+                    <div class="TM"
+                    <h1>Faturamento Líquido</h1><br>
+                    R${fatliq:.2f}
+                    <div/>
+                    <div class="TM"
+                    <h1>Produtos Vendidos</h1><br>
+                    {totprod:.0f} 
+                    <div/>
+                    <div class="TM"
+                    <h1>Total de Descontos</h1><br>
+                    {total_descontos:.2f} 
+                    <div/>                          
+                                         
+                   
+                </div>
+                             
+                """,
+                unsafe_allow_html=True
+            )
+            
+
+        
+        
+        
+     #Gráfico de vendas
+        col10, col20 = st.columns(2)    
+        with col10:  
+            st.subheader("Top 10 Funcionários que Mais Venderam")
+            func_rank = vendas['Funcionario'].value_counts()
+        # top10func = func_rank.head(10)
+    with col10:
+        fig3 = go.Figure(data=go.Bar(
+            x=func_rank.head(10).index, 
+            y=func_rank.head(10),
+            marker_color='orange',
+            text=[],  
+            textposition='none'  
+        ))
+        fig3.update_layout(
+            width=600,
+            height=550,  # Define a altura do gráfico
+            paper_bgcolor='#0E1117',
+            plot_bgcolor='#0E1117',
+            title='',
+            title_font_color='orange',
+            xaxis_title='',
+            yaxis_title='Vendas Realizadas',
+            xaxis_title_font_color='orange',
+            yaxis_title_font_color='orange',
+            xaxis_tickfont_color='orange',
+            yaxis_tickfont_color='orange',
+            margin=dict(l=40, r=20, t=40, b=40),
+            showlegend=False  
+        )        
+        # "Top 10 Funcionários que Mais Venderam"
+        st.plotly_chart(fig3, use_container_width=True) 
+
+        # "Top 10 Funcionários que Mais Venderam"
+
+    with col20: 
+       
+        st.subheader("Funcionários com Menos Vendas")
+
+    tail10func = func_rank.tail(5)
+   
+
+    with col20:
+        fig4 = go.Figure(data=go.Bar(
+            x=tail10func.head(10).index, 
+            y=tail10func.head(10),
+            marker_color='orange',
+            text=[],  
+            textposition='none'  
+        ))
+        fig4.update_layout(
+           # width=600,
+            height=550,  # Define a altura do gráfico
+            paper_bgcolor='#0E1117',
+            plot_bgcolor='#0E1117',
+            title='',
+            title_font_color='orange',
+            xaxis_title='',
+            yaxis_title='Vendas Realizadas',
+            xaxis_title_font_color='orange',
+            yaxis_title_font_color='orange',
+            xaxis_tickfont_color='orange',
+            yaxis_tickfont_color='orange',
+            margin=dict(l=40, r=20, t=40, b=40),
+            showlegend=False  
+        )        
+        # "Top 10 Funcionários que Mais Venderam"
+        st.plotly_chart(fig4, use_container_width=True) 
+
+
+    st.subheader("Devoluções")
+    devolucao = vendas['Devolucoes'].value_counts()
+    st.write(devolucao)
+        
+ 
+    # st.write("Colunas disponíveis:", vendas.columns)
+    #st.subheader("Faturamento Líquido")
+    #fatliq = vendas['Vlr_Liquido'].sum()
+    #st.write(f'Faturamento líquido: R${fatliq:.2f}')
+    #st.subheader("Total de Descontos")
+    #st.write(f'Total de descontos: R${total_descontos:.2f}')
+    #st.subheader("Total de Produtos Vendidos")
+    #totprod = vendas['N_Produtos'].sum()
+    #st.write(f'Total de produtos: {totprod:.0f} unidades')
+    #st.subheader("Top 10 Funcionários que Mais Venderam")
+    #func_rank = vendas['Funcionario'].value_counts()
+    #top10func = func_rank.head(10)
+    # st.bar_chart(top10func)
+    #st.subheader("Funcionários com Menos Vendas")
+    #tail10func = func_rank.tail(10)
+    #st.bar_chart(tail10func)
+    #st.subheader("Devoluções")
+    #devolucao = vendas['Devolucoes'].value_counts()
+    #st.write(devolucao)
+    #st.write("Colunas disponíveis:", vendas.columns)
+
+    
 # Função para a página de análise de clustering
 def pagina_clustering(dados):
     if 'vendas' in dados:
@@ -325,13 +476,14 @@ def main():
             pastas = [p for p in os.listdir(caminho) if os.path.isdir(os.path.join(caminho, p))]
             
             if pastas:
-                pasta_selecionada = col1.selectbox("Escolha uma pasta:", pastas)
+                pasta_selecionada = st.sidebar.selectbox("Escolha um cliente:", pastas)
                 cliente = os.path.join(caminho, pasta_selecionada)
 
                 # Carregar os dados da pasta selecionada
                 dados = carregar_dados(caminho, pasta_selecionada)
 
                 # Configurar a navegação entre páginas
+                
                 page = st.sidebar.selectbox("Selecione a página:", ["Análise de Acessos", "Análise de Vendas", "Clustering", "Regressão Linear"])
                 
                 if page == "Análise de Acessos":
