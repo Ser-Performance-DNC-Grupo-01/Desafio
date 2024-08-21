@@ -5,6 +5,7 @@ import os
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
+
 import plotly.graph_objects as go
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
@@ -409,6 +410,8 @@ def pagina_clustering(dados):
     else:
         st.error("Dados de vendas não encontrados.")
 
+
+
 # Função para a página de análise de regressão
 def pagina_regressao(dados):
     if 'vendas' in dados:
@@ -440,27 +443,139 @@ def pagina_regressao(dados):
         # Calculando o coeficiente de determinação (R²)
         r_sq = lr.score(x, y)
         
-        # Exibindo o coeficiente de determinação
-        st.write(f'Coeficiente de Determinação (R²): {r_sq:.2f}')
+        col40, col41, col43, col44, col45, col46, col47  = st.columns(7)
         
+    
+    
+    
+    
+    
+        
+        # Exibindo o coeficiente de determinação
+        #col40.write(f'Coeficiente de Determinação (R²): {r_sq:.2f}')
+                     
         # Previsões e métricas de erro para dados de treinamento
         y_pred_train = lr.predict(x_train)
-        st.write(f'MAE (Treinamento): {metrics.mean_absolute_error(y_train, y_pred_train):.2f}')
-        st.write(f'MSE (Treinamento): {metrics.mean_squared_error(y_train, y_pred_train):.2f}')
-        st.write(f'RMSE (Treinamento): {np.sqrt(metrics.mean_squared_error(y_train, y_pred_train)):.2f}')
+        #col41.write(f'MAE (Treinamento): {metrics.mean_absolute_error(y_train, y_pred_train):.2f}')
+        #col43.write(f'MSE (Treinamento): {metrics.mean_squared_error(y_train, y_pred_train):.2f}')
+        #col44.write(f'RMSE (Treinamento): {np.sqrt(metrics.mean_squared_error(y_train, y_pred_train)):.2f}')
         
         # Previsões e métricas de erro para dados de teste
         y_pred = lr.predict(x_test)
-        st.write(f'MAE (Teste): {metrics.mean_absolute_error(y_test, y_pred):.2f}')
-        st.write(f'MSE (Teste): {metrics.mean_squared_error(y_test, y_pred):.2f}')
-        st.write(f'RMSE (Teste): {np.sqrt(metrics.mean_squared_error(y_test, y_pred)):.2f}')
+        #col45.write(f'MAE (Teste): {metrics.mean_absolute_error(y_test, y_pred):.2f}')
+        #col46.write(f'MSE (Teste): {metrics.mean_squared_error(y_test, y_pred):.2f}')
+        #col47.write(f'RMSE (Teste): {np.sqrt(metrics.mean_squared_error(y_test, y_pred)):.2f}')
         
-        # Exibindo o pairplot das variáveis
-        st.subheader("Pairplot")
+        
+        col1, col2= st.columns(2)
+        #barra_laranja   
+        with col1:
+                st.markdown(
+                f"""
+                <style>
+                    .regresao {{
+                    display: flex;
+                    justify-content: center;
+                    align-items: center; 
+                    gap: 180px;        
+                    width: 80.3vw;
+                    background-color: #FFA500; 
+                    color: black;
+                    padding: 10px;
+                    border-radius: 10px;
+                    text-align: center;
+                    font-size: 24px;
+                    font-weight: bold;
+                    margin-bottom: 50px;
+                }}
+                .regresao div{{
+                 
+                 text-align: center;
+                 font-size: 16px;
+                 font-weight: bold;
+                 border-radius: 5px;
+                    
+                }} 
+                </style>
+                
+                <div class="regresao">
+                   <div>  <spam> Coeficiente de Determinação (R²) </spam> <br> {r_sq:.2f} </div>
+                   
+                   <div> <spam> MAE (Treinamento) </spam> <br> {metrics.mean_absolute_error(y_train, y_pred_train):.2f} </div>
+                   
+                   <div> <spam> MSE (Treinamento) </spam> <br> {metrics.mean_squared_error(y_train, y_pred_train):.2f} </div>
+                   
+                   <div> <spam> RMSE (Treinamento) </spam> <br> {np.sqrt(metrics.mean_squared_error(y_train, y_pred_train)):.2f} </div>
+                   
+                   <div> <spam> MAE (Teste) </spam> <br> {metrics.mean_absolute_error(y_test, y_pred):.2f} </div>
+                   
+                   <div> <spam> MSE (Teste) </spam> <br> {metrics.mean_squared_error(y_test, y_pred):.2f} </div>
+                   
+                   <div> <spam> RMSE (Teste) </spam> <br> {np.sqrt(metrics.mean_squared_error(y_test, y_pred)):.2f} </div>
+                          
+                                         
+                   
+                </div>
+                             
+                """,
+                unsafe_allow_html=True
+            )  
+        
+        
+        
+        
+        
+        # Exibindo o pairplot das variávei
+        
+        fig, ax = plt.subplots(figsize=(12, 10))  # Ajuste a largura e altura conforme necessário
+
+        # Cria o pairplot
         sns_plot = sns.pairplot(vendas[['Vlr_Bruto', 'Vlr_Desconto', 'Vlr_Liquido', 'N_Produtos']])
-        st.pyplot(sns_plot.figure)
+
+        sns_plot.fig.set_size_inches(20, 6)  # Ajuste a largura e altura conforme necessário
+
+        # Define o fundo da figura e dos eixos para preto
+        sns_plot.fig.patch.set_facecolor('#0E1117')  # Fundo da figura
+        for ax in sns_plot.axes.flatten():
+            ax.set_facecolor('#0E1117')  # Fundo dos eixos
+            ax.spines['top'].set_color('#f4a460')  # Cor das bordas dos eixos
+            ax.spines['right'].set_color('#f4a460')
+            ax.spines['left'].set_color('#f4a460')
+            ax.spines['bottom'].set_color('#f4a460')
+            ax.xaxis.label.set_color('white')  # Cor dos rótulos dos eixos x e y
+            ax.yaxis.label.set_color('#f4a460')
+            ax.tick_params(axis='both', colors='white')  # Cor dos ticks dos eixos 
+            ax.grid(True, color='#f4a460', linestyle='--', linewidth=0.5)  # Cor e estilo da grid
+
+        # Exibe o gráfico no Streamlit
+        st.subheader("Pairplot")
+        st.pyplot(sns_plot.fig, use_container_width=True)
+        
+        
+        
+        
+        
+        
+     
+
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
     else:
         st.error("Dados de vendas não encontrados.")
+
+
 
 # Função principal do Streamlit
 def main():
